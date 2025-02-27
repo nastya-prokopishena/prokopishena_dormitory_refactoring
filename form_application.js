@@ -240,7 +240,6 @@ app.post('/submit_application', async (req, res) => {
     } = req.body;
 
 
-    // Отримання відповідних ID з бази даних за обраними назвами
     const faculty = await Faculty.findOne({ where: { faculty_id: faculty_name } });
     const specialty = await Specialty.findOne({ where: { specialty_id: specialty_name } });
     const benefit = await Benefit.findOne({ where: { benefit_id: benefit_name } });
@@ -253,7 +252,6 @@ app.post('/submit_application', async (req, res) => {
       return res.status(400).json({ error: 'Невірні або відсутні дані для створення заявки.' });
     }
 
-    // Створення нової заявки з отриманими ID
     const newApplication = await Application.create({
       first_name,
       middle_name,
@@ -288,15 +286,18 @@ app.get('/prices', async (req, res) => {
   }
 });
 
-// Підключення до бази даних та запуск сервера
 sequelize.authenticate()
   .then(() => {
     console.log('Connection has been established successfully.');
 
-    app.listen(5500, () => {
-      console.log('Server is running on port 5500');
-    });
+    if (require.main === module) {
+      app.listen(5500, () => {
+        console.log('Server is running on port 5500');
+      });
+    }
   })
   .catch(err => {
     console.error('Unable to connect to the database:', err);
   });
+
+module.exports = app;
