@@ -1,24 +1,23 @@
 import globals from "globals";
 import pluginJs from "@eslint/js";
+import pluginJest from "eslint-plugin-jest"; 
 
-/** @type {import('eslint').Linter.Config[]} */
 export default [
   {
     languageOptions: {
       globals: {
         ...globals.browser,
-        ...globals.jest,  
+        ...globals.jest,
       },
     },
   },
   pluginJs.configs.recommended,
   {
-    plugins: ["jest"],  
-    env: {
-      "jest/globals": true,  
+    plugins: {
+      jest: pluginJest, 
     },
-    extends: [
-      "plugin:jest/recommended",  
-    ],
+    rules: {
+      ...pluginJest.configs.recommended.rules, 
+    },
   },
 ];
