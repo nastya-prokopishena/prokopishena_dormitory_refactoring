@@ -235,7 +235,7 @@ app.get(ROUTES.PRICE, async (req, res) => {
 
 
 
-app.post(ROUTES.SUBMIT_APPLICATION, async (req, res) => {
+/* app.post(ROUTES.SUBMIT_APPLICATION, async (req, res) => {
   try {
     const {
       first_name,
@@ -288,12 +288,51 @@ app.post(ROUTES.SUBMIT_APPLICATION, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+});*/
+async function validateReferences({ faculty_name, specialty_name, benefit_name }) {
+  const [faculty, specialty, benefit] = await Promise.all([
+    Faculty.findOne({ where: { faculty_id: faculty_name } }),
+    Specialty.findOne({ where: { specialty_id: specialty_name } }),
+    Benefit.findOne({ where: { benefit_id: benefit_name } }),
+  ]);
+  if (!faculty || !specialty || !benefit) {
+    throw new Error('Невірні або відсутні дані для створення заявки');
+  }
+  return {
+    faculty_id: faculty.faculty_id,
+    specialty_id: specialty.specialty_id,
+    benefit_id: benefit.benefit_id,
+  };
+}
 
+async function createApplication(data) {
+  return Application.create(data);
+}
 
 app.get(ROUTES.PRICES, async (req, res) => {
   const { status, body } = await fetchData(Price, ['price_id', 'price_amount']);
   res.status(status).json(body);
+});
+app.post(ROUTES.SUBMIT_APPLICATION, async (req, res) => {
+  try {
+    const {
+      first_name, middle_name, last_name, date_of_birth, home_address,
+      home_street_number, home_campus_number, home_city, home_region,
+      phone_number, email, faculty_name, specialty_name, benefit_name,
+    } = req.body;
+
+    const refs = await validateReferences({ faculty_name, specialty_name, benefit_name });
+    const applicationData = {
+      first_name, middle_name, last_name, date_of_birth, home_address,
+      home_street_number, home_campus_number, home_city, home_region,
+      phone_number, email, ...refs,
+    };
+
+    await createApplication(applicationData);
+    res.json({ message: 'Заявка успішно подана' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 });
 
 sequelize.authenticate()
