@@ -14,4 +14,9 @@ describe('Specialty Routes', () => {
     expect(response.body.error).toBe('Факультет з ID 999 не знайдено');
   });
 
+  it('should return empty array if faculty has no specialties', async () => {
+    const response = await request(app).get('/fetch-select-data/specialties/1');
+    expect(response.status).toBe(200); 
+    expect(Array.isArray(response.body)).toBe(true);
+  });
 });
