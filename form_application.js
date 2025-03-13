@@ -132,14 +132,21 @@ const Price = sequelize.define('Price', {
   timestamps: false}
 );
 
+async function fetchData(Model, attributes, where = {}) {
+  try {
+    const data = await Model.findAll({ attributes, where });
+    if (!data.length && Object.keys(where).length) {
+      return { status: 404, body: { error: 'Дані не знайдено' } };
+    }
+    return { status: 200, body: data };
+  } catch (error) {
+    return { status: 500, body: { error: error.message } };
+  }
+}
 // Роути для отримання даних та обробки заявок
 app.get('/fetch-select-data/faculties', async (req, res) => {
-  try {
-    const faculties = await Faculty.findAll({ attributes: ['faculty_id', 'name'] });
-    res.json(faculties);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  const { status, body } = await fetchData(Faculty, ['faculty_id', 'name']);
+  res.status(status).json(body);
 });
 
 app.get('/fetch-select-data/specialties/:facultyId', async (req, res) => {
@@ -171,12 +178,8 @@ app.get('/fetch-select-data/specialties/:facultyId', async (req, res) => {
 
 
 app.get('/fetch-select-data/benefits', async (req, res) => {
-  try {
-    const benefits = await Benefit.findAll({ attributes: ['benefit_id', 'name'] });
-    res.json(benefits);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  const { status, body } = await fetchData(Benefit, ['benefit_id', 'name']);
+  res.status(status).json(body);
 });
 
 // Обробник запиту для отримання даних гуртожитків за ідентифікатором
@@ -277,13 +280,8 @@ app.post('/submit_application', async (req, res) => {
 
 
 app.get('/prices', async (req, res) => {
-  try {
-    const prices = await Price.findAll();
-    res.json(prices);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Помилка сервера');
-  }
+  const { status, body } = await fetchData(Price, ['price_id', 'price_amount']);
+  res.status(status).json(body);
 });
 
 sequelize.authenticate()
