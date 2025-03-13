@@ -152,6 +152,9 @@ async function fetchData(Model, attributes, where = {}) {
     }
     return { status: 200, body: data };
   } catch (error) {
+    if (error.name === 'SequelizeDatabaseError') {
+      return { status: 500, body: { error: 'Помилка бази даних' } };
+    }
     return { status: 500, body: { error: error.message } };
   }
 }
@@ -233,62 +236,6 @@ app.get(ROUTES.PRICE, async (req, res) => {
   }
 });
 
-
-
-/* app.post(ROUTES.SUBMIT_APPLICATION, async (req, res) => {
-  try {
-    const {
-      first_name,
-      middle_name,
-      last_name,
-      date_of_birth,
-      home_address,
-      home_street_number,
-      home_campus_number,
-      home_city,
-      home_region,
-      phone_number,
-      email,
-      faculty_name,
-      specialty_name,
-      benefit_name,
-    } = req.body;
-
-
-    const faculty = await Faculty.findOne({ where: { faculty_id: faculty_name } });
-    const specialty = await Specialty.findOne({ where: { specialty_id: specialty_name } });
-    const benefit = await Benefit.findOne({ where: { benefit_id: benefit_name } });
-
-    const faculty_id = faculty ? faculty.faculty_id : null;
-    const specialty_id = specialty ? specialty.specialty_id : null;
-    const benefit_id = benefit ? benefit.benefit_id : null;
-
-    if (!faculty_id || !specialty_id || !benefit_id) {
-      return res.status(400).json({ error: 'Невірні або відсутні дані для створення заявки.' });
-    }
-
-    const newApplication = await Application.create({
-      first_name,
-      middle_name,
-      last_name,
-      date_of_birth,
-      home_address,
-      home_street_number,
-      home_campus_number,
-      home_city,
-      home_region,
-      phone_number,
-      email,
-      faculty_id,
-      specialty_id,
-      benefit_id,
-    });
-
-    res.json({ message: 'Заявка успішно подана' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});*/
 async function validateReferences({ faculty_name, specialty_name, benefit_name }) {
   const [faculty, specialty, benefit] = await Promise.all([
     Faculty.findOne({ where: { faculty_id: faculty_name } }),
@@ -321,6 +268,10 @@ app.post(ROUTES.SUBMIT_APPLICATION, async (req, res) => {
       phone_number, email, faculty_name, specialty_name, benefit_name,
     } = req.body;
 
+    if (!first_name || !last_name || !phone_number || !email) {
+      return res.status(400).json({ error: 'Відсутні обов’язкові поля: ім’я, прізвище, телефон або email' });
+    }
+    
     const refs = await validateReferences({ faculty_name, specialty_name, benefit_name });
     const applicationData = {
       first_name, middle_name, last_name, date_of_birth, home_address,
