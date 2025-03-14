@@ -291,7 +291,7 @@ sequelize.authenticate()
     console.log('Connection has been established successfully.');
 
     if (require.main === module) {
-      app.listen(5500, () => {
+      app.listen(PORT, () => {
         console.log('Server is running on port 5500');
       });
     }
